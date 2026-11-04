@@ -216,6 +216,15 @@ const EX = {
       "Each rep: shoulder blades down and back first, then lift. Hold 2 seconds, lower slowly."],
     tip:"Left shoulder: if the W pinches, bring your elbows closer to your sides and work just short of the pinch.", q:"bent over Y T W exercise"},
 
+  deskFacePull: {name:"Desk Face Pulls (No Weight)", area:"Shoulder", type:"reps", sets:2, reps:"10", repNote:"reps · 2–3 sec squeeze", rest:10,
+    equip:"Seated or standing · no equipment",
+    cue:"Pull back as if holding a rope at face height, then rotate your hands up and back into a double-biceps pose. Squeeze hard 2–3 seconds.",
+    steps:["Reach your arms forward at about chest-to-face height as if holding a rope.",
+      "Pull your hands toward your face, elbows out to the sides and slightly BELOW shoulder height.",
+      "At the end, rotate at the shoulders so your hands swing up and back beside your ears, knuckles pointing back.",
+      "Squeeze your upper back and the back of your shoulders hard for 2–3 seconds, then reach forward again."],
+    tip:"Left shoulder: rotate only as far as it's pinch-free. Once this is easy for a week, move to a light band, then to the cable version with your trainer.", q:"face pull external rotation form"},
+
   isoER: {name:"Doorframe Isometric External Rotation", area:"Shoulder", side:"Left", type:"hold", sets:3, hold:30, rest:15,
     equip:"Doorframe or wall",
     cue:"Left elbow tucked at your side, bent 90°. Press the back of your wrist outward into the doorframe at about half effort and hold.",
@@ -377,8 +386,8 @@ function v(base, over){ return Object.assign({}, EX[base], over||{}); }
 
 const WARMUP = ["armSwings","shoulderCARs","trunkTwist","legSwings","marches"];
 const MODES = {
-  work: {title:"At Work", time:"~7 min", desc:"Seated or standing, no equipment. Run the whole set, or tap any move to do just that one between cases.",
-    list:[v("chinTuck"), v("seatedYTW"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet"), v("quickReset")]},
+  work: {title:"At Work", time:"~8 min", desc:"Seated or standing, no equipment. Run the whole set, or tap any move to do just that one between cases.",
+    list:[v("chinTuck"), v("seatedYTW"), v("deskFacePull"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet"), v("quickReset")]},
   quick:{title:"Home Quick", time:"~11 min", desc:"The minimum day. A short warm-up, the three highest-value moves, and a back reset.",
     list:[...WARMUP.map(k=>v(k)), v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
   full: {title:"Home Full", time:"~25 min", desc:"The complete session: warm-up, strength, mobility, and a breathing finish.",
