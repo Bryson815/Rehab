@@ -273,6 +273,14 @@ const EX = {
       "Shift the roller up an inch and repeat. Or just relax arms out to the sides and breathe."],
     tip:"Mid-back only. Not your low back, not your neck. It should feel like relief.", q:"foam roller thoracic extension"},
 
+  rollerOpener: {name:"Lengthwise Roller Chest Opener", area:"Posture", type:"hold", sets:1, hold:90, rest:0,
+    equip:"Foam roller",
+    cue:"Lie on the roller lengthwise, spine along it, head supported. Let your arms rest out to the sides, palms up, and let gravity open your chest.",
+    steps:["Sit at one end of the roller and lie back so it runs along your spine from tailbone to head. Knees bent, feet flat.",
+      "Let your arms fall out to the sides at about 45° from your body, palms up. Don't hold them up.",
+      "Breathe slowly and let your shoulders sink toward the floor. Slide your arms a little higher or lower to find the best stretch."],
+    tip:"This stretches the pec minor, the main muscle pulling shoulders forward. Left shoulder: keep arms low enough that nothing pinches.", q:"foam roller lengthwise chest opener pec minor"},
+
   sideER: {name:"Side-Lying External Rotation", area:"Shoulder", side:"Left", type:"reps", sets:2, reps:"15", repNote:"reps · slow both ways", rest:30,
     equip:"Floor · rolled towel · light weight optional",
     cue:"Lie on your RIGHT side. Left elbow bent 90° with a small towel roll between elbow and ribs. Rotate your forearm up toward the ceiling, lower slowly.",
@@ -374,7 +382,7 @@ const MODES = {
   quick:{title:"Home Quick", time:"~11 min", desc:"The minimum day. A short warm-up, the three highest-value moves, and a back reset.",
     list:[...WARMUP.map(k=>v(k)), v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
   full: {title:"Home Full", time:"~25 min", desc:"The complete session: warm-up, strength, mobility, and a breathing finish.",
-    list:[...WARMUP.map(k=>v(k)), v("thoracic"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("pushPlus"),
+    list:[...WARMUP.map(k=>v(k)), v("thoracic"), v("rollerOpener"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("pushPlus"),
           v("stepDown",{sets:3, rest:30}), v("bridge"), v("lowDoorway"), v("crossSleeper"), v("cyclicSigh",{hold:120})]},
   warm: {title:"Warm-Up Only", time:"~4 min", desc:"Dynamic warm-up for before your trainer sessions or the gym. Also a good bare-minimum day.",
     list:WARMUP.map(k=>v(k))},
