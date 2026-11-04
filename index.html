@@ -291,6 +291,42 @@ const EX = {
       "Use your right hand to gently press your left forearm toward the floor. Mild pull only."],
     tip:"If the front of the shoulder pinches in the sleeper, roll your body back 20–30°. Gentle pressure only.", q:"modified sleeper stretch"},
 
+  armSwings: {name:"Arm Swings + Dead Arms", area:"Shoulder", type:"hold", labels:["Arm swings","Dead arms"], hold:30, rest:0,
+    equip:"Standing · no equipment",
+    cue:"Arm swings: one arm forward, one back, swinging loosely and growing the range. Dead arms: let your torso turn side to side and let relaxed arms flop around you.",
+    steps:["Arm swings: stand tall, knees soft. Swing one arm forward and up while the other swings back, then switch. Start small and let the range grow.",
+      "Dead arms: turn your torso gently side to side and let completely relaxed arms wrap loosely around your body.",
+      "Easy rhythm, steady breathing. This is about getting blood moving, not effort."],
+    tip:"Left shoulder: let the overhead part of the swing stay below any pinch.", q:"arm swings dead arms warm up"},
+
+  shoulderCARs: {name:"Slow Shoulder Circles (CARs)", area:"Shoulder", type:"hold", labels:["Left arm","Right arm"], hold:30, rest:0,
+    equip:"Standing · no equipment",
+    cue:"Make the biggest, slowest circle you can with one straight arm, about 10 seconds per circle. Keep your ribs and trunk still so only the shoulder moves.",
+    steps:["Stand tall and make a light fist with your other hand on your hip to keep your trunk still.",
+      "Raise the working arm forward and up overhead, rotate it so the palm turns outward, then sweep it back and down behind you in one slow, continuous circle.",
+      "Reverse direction halfway through. Move slowly enough that you're controlling every part of the circle."],
+    tip:"This is the controlled end-range work that builds usable range. On the left, shrink the circle where it pinches.", q:"shoulder CARs controlled articular rotation"},
+
+  trunkTwist: {name:"Trunk Twists + Golf Swings", area:"Posture", type:"hold", labels:["Trunk twists","Golf swings"], hold:30, rest:0,
+    equip:"Standing · no equipment",
+    cue:"Trunk twists: arms crossed, turn your chest side to side with hips steady. Golf swings: loose arms swinging through, letting your back foot pivot.",
+    steps:["Trunk twists: feet hip-width, knees soft, arms crossed over your chest. Rotate your chest left and right, hips mostly still.",
+      "Golf swings: swing both arms back and through like a slow golf swing, turning through your whole body.",
+      "Let the back foot pivot onto its toe on each follow-through."],
+    tip:"Right knee: always let the foot turn with you. Never twist over a planted foot.", q:"standing trunk rotation warm up"},
+
+  legSwings: {name:"Leg Swings", area:"Knee", type:"hold", labels:["Right leg","Left leg"], hold:30, rest:0,
+    equip:"Wall or counter for balance",
+    cue:"One hand on the wall. Swing the outside leg forward and back like a pendulum, letting the range grow each swing.",
+    steps:["Stand side-on to a wall with one hand on it.","Swing the outside leg forward and back, relaxed, from the hip.","Start small and let it grow to a comfortable full range. Standing knee stays soft."],
+    tip:"Loose and rhythmic. No kicking or forcing the end range.", q:"leg swings dynamic warm up"},
+
+  marches: {name:"Marches with Clap", area:"Knee", type:"hold", sets:1, hold:30, rest:0,
+    equip:"Standing · no equipment",
+    cue:"March in place, lifting each knee toward hip height and clapping your hands under it.",
+    steps:["Stand tall.","Lift one knee toward hip height and clap your hands under it.","Alternate legs at a steady, comfortable pace."],
+    tip:"Easy pace. This is the last step of the warm-up, so you should feel warm, not tired.", q:"high knee march clap warm up"},
+
   boxBreath: {name:"Box Breathing", area:"Posture", type:"hold", sets:1, hold:64, rest:0, breath:true,
     equip:"Sitting tall",
     cue:"Inhale 4 · hold 4 · exhale 4 · hold 4. Follow the prompt. Sit tall, chest open, eyes closed if you like.",
@@ -299,14 +335,17 @@ const EX = {
 };
 function v(base, over){ return Object.assign({}, EX[base], over||{}); }
 
+const WARMUP = ["armSwings","shoulderCARs","trunkTwist","legSwings","marches"];
 const MODES = {
   work: {title:"At Work", time:"~6 min", desc:"Seated or standing, no equipment. Run the whole set, or tap any move to do just that one between cases.",
     list:[v("chinTuck"), v("seatedYTW"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet")]},
-  quick:{title:"Home Quick", time:"~8 min", desc:"The minimum day. The three highest-value moves plus a back reset.",
-    list:[v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
-  full: {title:"Home Full", time:"~20–25 min", desc:"The complete session: strength, mobility, and a breathing finish.",
-    list:[v("thoracic"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("pushPlus"),
-          v("stepDown",{sets:3, rest:30}), v("bridge"), v("lowDoorway"), v("crossSleeper"), v("boxBreath")]}
+  quick:{title:"Home Quick", time:"~11 min", desc:"The minimum day. A short warm-up, the three highest-value moves, and a back reset.",
+    list:[...WARMUP.map(k=>v(k)), v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
+  full: {title:"Home Full", time:"~25 min", desc:"The complete session: warm-up, strength, mobility, and a breathing finish.",
+    list:[...WARMUP.map(k=>v(k)), v("thoracic"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("pushPlus"),
+          v("stepDown",{sets:3, rest:30}), v("bridge"), v("lowDoorway"), v("crossSleeper"), v("boxBreath")]},
+  warm: {title:"Warm-Up Only", time:"~4 min", desc:"Dynamic warm-up for before your trainer sessions or the gym. Also a good bare-minimum day.",
+    list:WARMUP.map(k=>v(k))}
 };
 
 // ---------- STORAGE ----------
@@ -323,8 +362,8 @@ function lastDone(mode){
 
 // ---------- HOME ----------
 function renderHome(){
-  const wk=last7(), home=wk.filter(x=>x.m!=="work").length, work=wk.filter(x=>x.m==="work").length;
-  document.getElementById("weekLine").innerHTML = `Last 7 days: <b>${home}</b> home session${home===1?"":"s"} · <b>${work}</b> at work`;
+  const wk=last7(), home=wk.filter(x=>x.m==="quick"||x.m==="full").length, work=wk.filter(x=>x.m==="work").length, warm=wk.filter(x=>x.m==="warm").length;
+  document.getElementById("weekLine").innerHTML = `Last 7 days: <b>${home}</b> home · <b>${work}</b> at work · <b>${warm}</b> warm-up${warm===1?"":"s"}`;
   document.getElementById("modes").innerHTML = Object.entries(MODES).map(([k,m])=>{
     const items = m.list.map((e,i)=>{
       const n = nSets(e);
@@ -439,7 +478,7 @@ function renderDynamic(){
     ph.textContent="Get ready";
     sub.textContent = e.type==="reps"
       ? `${e.labels?e.labels.join("-")+" · ":(n>1?n+" sets × ":"")}${e.reps} ${e.repNote}`
-      : `${e.labels?e.labels.join(" / "):(n>1?n+" × ":"")}${e.hold} sec hold${n>1&&!e.labels?"s":""}`;
+      : `${e.labels?e.labels.join(" / ")+" · "+e.hold+" sec each":(n>1?n+" × ":"")+e.hold+" sec hold"+(n>1?"s":"")}`;
     num.textContent=S.rem; ring.style.strokeDashoffset=C*(1-S.rem/S.total);
     btn.textContent="Start now";
   } else if(S.phase==="rest"){
