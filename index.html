@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rehab">
+<meta name="theme-color" content="#1A1A1A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Daily Rehab</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1A1A1A;--surface:#242424;--surface2:#2E2E2E;--ink:#F0EDE8;--muted:#8E8A84;--accent:#D4763B;--divider:#343434;
+--shoulder:#4A9AD4;--knee:#6AAB4A;--posture:#A07BCF}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .25s;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.screen.active{opacity:1;pointer-events:auto}
+.serif{font-family:'DM Serif Display',Georgia,serif}
+
+/* HOME */
+.home-scroll{flex:1;overflow-y:auto;padding:24px 16px 32px;-webkit-overflow-scrolling:touch}
+.home-title{font-family:'DM Serif Display',Georgia,serif;font-size:38px;letter-spacing:-1px;line-height:1.05}
+.home-sub{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px}
+.week{margin-top:14px;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--divider);border-radius:12px;padding:10px 14px}
+.week b{color:var(--accent)}
+.mode{background:var(--surface);border:1px solid var(--divider);border-radius:16px;padding:16px;margin-top:14px}
+.mode-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mode-title{font-family:'DM Serif Display',Georgia,serif;font-size:24px;letter-spacing:-.3px}
+.mode-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.mode-start{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:12px 20px;font-size:15px;font-weight:600;flex-shrink:0}
+.mode-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-top:10px}
+details.moves{margin-top:10px}
+details.moves summary{font-size:12px;color:var(--ink);font-weight:500;list-style:none;padding:6px 0}
+details.moves summary::-webkit-details-marker{display:none}
+details.moves summary::after{content:' ▾';color:var(--muted)}
+details.moves[open] summary::after{content:' ▴'}
+.item{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;border-top:1px solid var(--divider);color:var(--ink);text-align:left;padding:11px 2px;font-size:14px}
+.item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.item .item-meta{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:14px;padding:0 4px}
+.note b{color:var(--ink)}
+
+/* WORKOUT */
+.w-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 18px 10px;flex-shrink:0}
+.w-count{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.w-area{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;font-weight:500;flex-wrap:wrap}
+.w-area .dot{width:8px;height:8px;border-radius:50%}
+.side{background:var(--accent);color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;margin-left:4px}
+.pill-btn{background:var(--surface2);border:none;color:var(--ink);border-radius:10px;padding:9px 16px;font-size:14px;font-weight:500}
+.strip{display:flex;gap:3px;padding:0 18px 12px;flex-shrink:0}
+.seg{flex:1;height:3px;border-radius:2px;background:var(--divider)}
+.seg.done{background:var(--accent)}.seg.cur{background:var(--muted)}
+.w-body{flex:1;overflow-y:auto;padding:0 18px 12px;-webkit-overflow-scrolling:touch}
+.w-name{font-family:'DM Serif Display',Georgia,serif;font-size:28px;line-height:1.15;letter-spacing:-.5px}
+.w-equip{font-size:12px;color:var(--muted);margin-top:4px}
+.panel{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--divider);border-radius:18px;padding:16px;margin-top:14px}
+.ring{flex-shrink:0;position:relative;width:96px;height:96px}
+.ring svg{width:96px;height:96px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7}
+.ring .bgc{stroke:var(--surface2)}
+.ring .fg{stroke-linecap:round;transition:stroke-dashoffset .95s linear}
+.ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',Georgia,serif;font-size:30px;letter-spacing:-1px}
+.phase{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--accent);font-weight:600}
+.big-sub{font-size:15px;color:var(--ink);margin-top:5px;line-height:1.4}
+.cue{font-size:15px;line-height:1.55;color:var(--ink);margin-top:14px}
+details.how{margin-top:12px;background:var(--surface);border:1px solid var(--divider);border-radius:14px;padding:12px 14px}
+details.how summary{font-size:14px;font-weight:500;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how summary::after{content:' ▾';color:var(--muted)}
+details.how[open] summary::after{content:' ▴'}
+ol.steps{margin:10px 0 0 18px;font-size:14px;line-height:1.55;color:var(--ink)}
+ol.steps li{margin-bottom:6px}
+.tip{font-size:13px;line-height:1.5;background:rgba(212,118,59,.12);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:8px 10px;margin-top:10px;color:#F2C9A8}
+.demo{display:inline-block;margin-top:10px;font-size:13px;color:var(--accent);text-decoration:none;font-weight:500}
+.w-foot{flex-shrink:0;padding:10px 18px 16px;border-top:1px solid var(--divider)}
+.row{display:flex;gap:10px;margin-bottom:10px}
+.ghost{flex:1;background:var(--surface2);border:none;color:var(--muted);border-radius:12px;padding:12px;font-size:14px;font-weight:500}
+.primary{width:100%;background:var(--accent);border:none;color:#fff;border-radius:16px;padding:18px;font-size:17px;font-weight:600}
+.primary:active,.mode-start:active{opacity:.85}
+
+/* PAUSE */
+#paused{background:rgba(14,14,14,.97)}
+.p-body{flex:1;overflow-y:auto;padding:24px 18px}
+.p-title{font-family:'DM Serif Display',Georgia,serif;font-size:30px}
+.p-card{background:var(--surface);border:1px solid var(--divider);border-radius:16px;padding:16px;margin-top:16px}
+.p-area{font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.p-name{font-family:'DM Serif Display',Georgia,serif;font-size:24px;margin-top:4px;line-height:1.2}
+.p-where{font-size:13px;color:var(--muted);margin-top:6px}
+.p-foot{padding:12px 18px 18px;display:flex;flex-direction:column;gap:10px}
+
+/* DONE */
+#done{align-items:center;justify-content:center;text-align:center;padding:32px 24px}
+.d-check{width:96px;height:96px;margin-bottom:20px}
+.d-title{font-family:'DM Serif Display',Georgia,serif;font-size:34px}
+.d-sub{font-size:14px;color:var(--muted);line-height:1.6;margin:8px auto 28px;max-width:290px}
+.d-stats{display:flex;gap:36px;justify-content:center;margin-bottom:34px}
+.d-num{font-family:'DM Serif Display',Georgia,serif;font-size:34px;color:var(--accent)}
+.d-lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+</style>
+</head>
+<body>
+
+<div class="screen active" id="home">
+  <div class="home-scroll">
+    <div class="home-title">Daily Rehab</div>
+    <div class="home-sub">Left shoulder · Right knee · Posture</div>
+    <div class="week" id="weekLine"></div>
+    <div id="modes"></div>
+    <div class="note"><b>Pinch rule:</b> muscle burn = good · stretch = fine · pinch or sharp pain = stop just short of it. The pinch-free range should grow over a few weeks.</div>
+    <div class="note"><b>Weekly plan:</b> Home Full or Quick about 3×/week (trainer days can count). At Work moves any day, even just one. Stair climber on cardio days.</div>
+  </div>
+</div>
+
+<div class="screen" id="workout">
+  <div class="w-head">
+    <div>
+      <div class="w-count" id="wCount"></div>
+      <div class="w-area"><span class="dot" id="wDot"></span><span id="wArea"></span><span class="side" id="wSide"></span></div>
+    </div>
+    <button class="pill-btn" onclick="pauseW()">Pause</button>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="w-body">
+    <div class="w-name" id="wName"></div>
+    <div class="w-equip" id="wEquip"></div>
+    <div class="panel">
+      <div class="ring">
+        <svg viewBox="0 0 100 100"><circle class="bgc" cx="50" cy="50" r="44"/><circle class="fg" id="ringFg" cx="50" cy="50" r="44" stroke-dasharray="276.5" stroke-dashoffset="0"/></svg>
+        <div class="ring-num" id="ringNum"></div>
+      </div>
+      <div>
+        <div class="phase" id="wPhase"></div>
+        <div class="big-sub" id="wSub"></div>
+      </div>
+    </div>
+    <div class="cue" id="wCue"></div>
+    <details class="how" id="wHow">
+      <summary>How to do it</summary>
+      <ol class="steps" id="wSteps"></ol>
+      <div class="tip" id="wTip"></div>
+      <a class="demo" id="wDemo" target="_blank" rel="noopener">Find a demo video ↗</a>
+    </details>
+  </div>
+  <div class="w-foot">
+    <div class="row">
+      <button class="ghost" onclick="advance(-1)">← Back</button>
+      <button class="ghost" onclick="advance(1)">Skip →</button>
+    </div>
+    <button class="primary" id="wPrimary" onclick="primary()"></button>
+  </div>
+</div>
+
+<div class="screen" id="paused">
+  <div class="p-body">
+    <div class="p-title">Paused</div>
+    <div class="p-card">
+      <div class="p-area" id="pArea"></div>
+      <div class="p-name" id="pName"></div>
+      <div class="p-where" id="pWhere"></div>
+      <div class="cue" id="pCue"></div>
+      <ol class="steps" id="pSteps"></ol>
+      <div class="tip" id="pTip"></div>
+    </div>
+  </div>
+  <div class="p-foot">
+    <button class="primary" onclick="resumeW()">Resume</button>
+    <button class="ghost" style="flex:none" onclick="quitW()">End session</button>
+  </div>
+</div>
+
+<div class="screen" id="done">
+  <svg class="d-check" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="#D4763B" stroke-width="6"/><path d="M31 52 L44 65 L69 38" stroke="#D4763B" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="d-title" id="dTitle">Done</div>
+  <div class="d-sub">Consistency beats intensity. This counts.</div>
+  <div class="d-stats">
+    <div><div class="d-num" id="dMin">0</div><div class="d-lab">Minutes</div></div>
+    <div><div class="d-num" id="dWeek">0</div><div class="d-lab">Sessions, 7 days</div></div>
+  </div>
+  <button class="primary" style="max-width:300px" onclick="goHome()">Back to Home</button>
+</div>
+
+<script>
+const AREA_COLOR = {Shoulder:"#4A9AD4", Knee:"#6AAB4A", Posture:"#A07BCF"};
+const READY_SEC = 8;
+
+// ---------- EXERCISE LIBRARY ----------
+const EX = {
+  chinTuck: {name:"Chin Tucks", area:"Posture", type:"reps", sets:1, reps:"10", repNote:"reps · hold each 2 sec", rest:0,
+    equip:"Seated · no equipment",
+    cue:"Glide your chin straight back, like making a double chin. Hold 2 seconds, release.",
+    steps:["Sit tall with your eyes level.","Glide your chin straight back without tipping your head down.","You should feel a gentle stretch at the base of your skull. Hold 2 seconds, release."],
+    tip:"It's a glide, not a nod. Eyes stay level the whole time.", q:"chin tuck exercise physical therapy"},
+
+  seatedYTW: {name:"Bent-Over Y-T-W (Seated)", area:"Shoulder", type:"reps", labels:["Y","T","W"], reps:"8", repNote:"reps · 2-sec hold each", rest:10,
+    equip:"Chair · no equipment",
+    cue:"Hinge forward in your chair, chest over thighs, back flat. Set your shoulder blades down and back, then raise your arms into each letter.",
+    steps:["Sit near the front of the chair. Hinge forward with a flat back until your chest is over your thighs, arms hanging down.",
+      "Y: arms forward and out at about 45°, thumbs up. T: arms straight out to the sides, thumbs up.",
+      "W: elbows bent, upper arms about 30° out from your sides. Rotate so your hands finish slightly higher than your elbows.",
+      "Each rep: shoulder blades down and back first, then lift. Hold 2 seconds, lower slowly."],
+    tip:"Left shoulder: if the W pinches, bring your elbows closer to your sides and work just short of the pinch.", q:"bent over Y T W exercise"},
+
+  isoER: {name:"Doorframe Isometric External Rotation", area:"Shoulder", side:"Left", type:"hold", sets:3, hold:30, rest:15,
+    equip:"Doorframe or wall",
+    cue:"Left elbow tucked at your side, bent 90°. Press the back of your wrist outward into the doorframe at about half effort and hold.",
+    steps:["Stand in a doorway with your left side next to the frame.","Tuck your left elbow against your ribs, bent 90°, forearm pointing forward.",
+      "Press the back of your wrist outward into the frame at 30–50% effort. Nothing moves; you're just holding the push.","Keep the shoulder relaxed down, not shrugged."],
+    tip:"You should feel steady work at the back of the shoulder. No pinch. Isometrics can also ease tendon pain.", q:"isometric shoulder external rotation doorway"},
+
+  lowDoorway: {name:"Low Doorway Chest Stretch", area:"Posture", type:"hold", sets:2, hold:30, rest:5,
+    equip:"Doorway",
+    cue:"Forearms on the doorframe with elbows BELOW shoulder height. Step through gently and breathe.",
+    steps:["Place both forearms on the doorframe, elbows about 45° (below shoulder height).","Step one foot through and lean gently until you feel a stretch across your chest.","Breathe slowly and let your chest open a little more with each exhale."],
+    tip:"Arms high puts the left shoulder in its pinch position. Keep elbows low, and lower them further if it pinches.", q:"low doorway pec stretch"},
+
+  sitStand: {name:"Slow Sit-to-Stands", area:"Knee", type:"reps", sets:2, reps:"10", repNote:"reps · 3–4 sec down", rest:20,
+    equip:"Chair",
+    cue:"Arms crossed. Stand up, then lower back to the chair over 3–4 seconds. Touch the seat, don't plop.",
+    steps:["Sit near the front of the chair, feet hip-width, arms crossed over your chest.","Stand up by driving through your heels.","Lower back down slowly over 3–4 seconds until you just touch the seat, then stand again."],
+    tip:"Knees track over your toes. If your right knee complains, use a higher seat.", q:"slow eccentric sit to stand exercise"},
+
+  quadSet: {name:"Seated Quad Sets", area:"Knee", side:"Right", type:"hold", sets:6, hold:10, rest:3,
+    equip:"Chair",
+    cue:"Straighten your right knee under the desk and squeeze your thigh as hard as you can. Hold 10 seconds.",
+    steps:["Sit with your right leg out in front of you, heel on the floor or lifted slightly.","Straighten the knee fully and tighten the quad hard.","Hold 10 seconds, relax 3, repeat."],
+    tip:"Pull your toes back toward you to get a stronger squeeze.", q:"seated quad set exercise"},
+
+  eccCurl: {name:"Eccentric Biceps Curl", area:"Shoulder", side:"Left", type:"reps", sets:2, reps:"8", repNote:"reps · 5 sec lowering", rest:30,
+    equip:"5–10 lb dumbbell",
+    cue:"Palm up, elbow at your side. Help the weight up with your right hand, then lower it with your left arm alone over 5 full seconds.",
+    steps:["Stand holding the dumbbell in your left hand, palm up, elbow at your side.","Curl it up, using your right hand to help as much as needed.",
+      "Let go with the right hand and lower with the left over a slow count of 5.","The slow lowering is the treatment. The way up doesn't matter."],
+    tip:"Mild aching during and after is normal with tendon work. Sharp pain means use a lighter weight.", q:"eccentric biceps curl tendinopathy"},
+
+  proneYTW: {name:"Prone Y-T-W", area:"Shoulder", type:"reps", labels:["Y","T","W"], reps:"8", repNote:"reps · 2-sec hold each", rest:10,
+    equip:"Floor + folded towel",
+    cue:"Face down, forehead on a folded towel. Set your shoulder blades down and back, then lift your arms just a few inches into each letter.",
+    steps:["Lie face down with your forehead on a folded towel so your neck stays neutral.",
+      "Y: arms overhead at about 45°, thumbs up. T: arms straight out to the sides, thumbs up.",
+      "W: elbows bent, upper arms about 30° from your sides; let your hands rise slightly higher than your elbows.",
+      "Each rep: shoulder blades toward your back pockets, lift a few inches, hold 2 seconds, lower slowly."],
+    tip:"Left shoulder: keep the W low and stop just short of any pinch. Don't lift your head or arch your low back to get height.", q:"prone Y T W exercise"},
+
+  stepDown: {name:"Stair Step-Downs", area:"Knee", side:"Right", type:"reps", sets:2, reps:"10", repNote:"reps · 3–4 sec down", rest:20,
+    equip:"Bottom stair",
+    cue:"Stand on the bottom step on your RIGHT foot. Lower your left heel toward the floor over 3–4 seconds, tap lightly, push back up.",
+    steps:["Stand on the bottom step on your right foot, left foot hanging off the edge. Light hand on the rail for balance only.",
+      "Bend your right knee and slowly lower your left heel toward the floor over 3–4 seconds.",
+      "Tap the floor lightly, then push back up through your right heel."],
+    tip:"Right knee stays over your second toe. Don't let it cave inward.", q:"eccentric step down exercise knee"},
+
+  thoracic: {name:"Thoracic Extension", area:"Posture", type:"hold", sets:1, hold:60, rest:0,
+    equip:"Foam roller or rolled towel",
+    cue:"Roller across your mid-back. Hands behind your head, gently extend back over it a few times, then move it up an inch and repeat.",
+    steps:["Sit on the floor and lean back so the roller sits across your back just below your shoulder blades.",
+      "Hands behind your head to support your neck. Gently arch back over the roller, then curl partway up. Repeat 4–5 times.",
+      "Shift the roller up an inch and repeat. Or just relax arms out to the sides and breathe."],
+    tip:"Mid-back only. Not your low back, not your neck. It should feel like relief.", q:"foam roller thoracic extension"},
+
+  sideER: {name:"Side-Lying External Rotation", area:"Shoulder", side:"Left", type:"reps", sets:2, reps:"15", repNote:"reps · slow both ways", rest:30,
+    equip:"Floor · rolled towel · light weight optional",
+    cue:"Lie on your RIGHT side. Left elbow bent 90° with a small towel roll between elbow and ribs. Rotate your forearm up toward the ceiling, lower slowly.",
+    steps:["Lie on your right side, head supported. Put a small rolled towel between your left elbow and ribs.",
+      "Left elbow bent 90°, forearm resting across your belly.","Keeping the elbow pinned to the towel, rotate your forearm up toward the ceiling, then lower slowly.",
+      "Bodyweight to start; add a 1–3 lb weight once 15 reps feel easy."],
+    tip:"If the elbow lifts off the towel, you've changed the exercise. Stop short of any pinch at the top.", q:"side lying external rotation towel roll"},
+
+  pushPlus: {name:"Wall Push-Up Plus", area:"Shoulder", type:"reps", sets:2, reps:"12", repNote:"reps", rest:20,
+    equip:"Wall",
+    cue:"Do a wall push-up, then at the top push the wall away an extra inch by spreading your shoulder blades apart.",
+    steps:["Hands on the wall at shoulder height and width, body in a straight line.","Lower your chest toward the wall, then press back.",
+      "At the top, keep arms straight and push further, letting your shoulder blades slide apart around your ribs. That 'plus' is the point."],
+    tip:"This trains the serratus anterior, which helps rotate the shoulder blade up when you raise your arm.", q:"wall push up plus serratus"},
+
+  bridge: {name:"Glute Bridge", area:"Knee", type:"reps", sets:2, reps:"15", repNote:"reps · 2-sec squeeze at top", rest:20,
+    equip:"Floor",
+    cue:"On your back, knees bent, feet flat. Drive through your heels to lift your hips, squeeze 2 seconds at the top, lower slowly.",
+    steps:["Lie on your back with knees bent and feet flat, hip-width apart.","Push through your heels and lift your hips until your body is straight from shoulders to knees.","Squeeze your glutes for 2 seconds, lower slowly."],
+    tip:"Feel it in your glutes, not your low back. Once 15 is easy, progress to single-leg.", q:"glute bridge exercise form"},
+
+  crossSleeper: {name:"Cross-Body + Sleeper Stretch", area:"Shoulder", side:"Left", type:"hold", labels:["Cross-body","Sleeper","Cross-body","Sleeper"], hold:30, rest:5,
+    equip:"Floor or bed",
+    cue:"Cross-body: pull your left arm across your chest with your right hand. Sleeper: lie on your left side and gently press your left forearm toward the floor.",
+    steps:["Cross-body: standing, pull your left arm across your chest with your right hand. Feel it in the back of the left shoulder.",
+      "Sleeper: lie on your left side with your left arm out in front at shoulder height, elbow bent 90°.",
+      "Use your right hand to gently press your left forearm toward the floor. Mild pull only."],
+    tip:"If the front of the shoulder pinches in the sleeper, roll your body back 20–30°. Gentle pressure only.", q:"modified sleeper stretch"},
+
+  boxBreath: {name:"Box Breathing", area:"Posture", type:"hold", sets:1, hold:64, rest:0, breath:true,
+    equip:"Sitting tall",
+    cue:"Inhale 4 · hold 4 · exhale 4 · hold 4. Follow the prompt. Sit tall, chest open, eyes closed if you like.",
+    steps:["Sit upright with your shoulders relaxed and chest open.","Inhale through your nose for 4, hold 4, exhale slowly for 4, hold empty for 4.","Four full cycles."],
+    tip:"This is the nervous-system reset. Don't rush it.", q:"box breathing guide"}
+};
+function v(base, over){ return Object.assign({}, EX[base], over||{}); }
+
+const MODES = {
+  work: {title:"At Work", time:"~6 min", desc:"Seated or standing, no equipment. Run the whole set, or tap any move to do just that one between cases.",
+    list:[v("chinTuck"), v("seatedYTW"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet")]},
+  quick:{title:"Home Quick", time:"~8 min", desc:"The minimum day. The three highest-value moves plus a back reset.",
+    list:[v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
+  full: {title:"Home Full", time:"~20–25 min", desc:"The complete session: strength, mobility, and a breathing finish.",
+    list:[v("thoracic"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("pushPlus"),
+          v("stepDown",{sets:3, rest:30}), v("bridge"), v("lowDoorway"), v("crossSleeper"), v("boxBreath")]}
+};
+
+// ---------- STORAGE ----------
+function getLog(){ try{ return JSON.parse(localStorage.getItem("rehabLog")||"[]"); }catch(e){ return []; } }
+function addLog(mode){ try{ const l=getLog(); l.push({t:Date.now(), m:mode}); localStorage.setItem("rehabLog", JSON.stringify(l.slice(-200))); }catch(e){} }
+function last7(){ const c=Date.now()-7*864e5; return getLog().filter(x=>x.t>=c); }
+function lastDone(mode){
+  const l=getLog().filter(x=>x.m===mode); if(!l.length) return "not yet";
+  const d=new Date(l[l.length-1].t), now=new Date();
+  const days=Math.round((new Date(now.toDateString())-new Date(d.toDateString()))/864e5);
+  if(days===0) return "today"; if(days===1) return "yesterday";
+  return d.toLocaleDateString(undefined,{weekday:"short"}) + (days>6 ? " " + d.toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "");
+}
+
+// ---------- HOME ----------
+function renderHome(){
+  const wk=last7(), home=wk.filter(x=>x.m!=="work").length, work=wk.filter(x=>x.m==="work").length;
+  document.getElementById("weekLine").innerHTML = `Last 7 days: <b>${home}</b> home session${home===1?"":"s"} · <b>${work}</b> at work`;
+  document.getElementById("modes").innerHTML = Object.entries(MODES).map(([k,m])=>{
+    const items = m.list.map((e,i)=>{
+      const n = nSets(e);
+      const meta = e.type==="reps" ? `${n}×${e.reps}` : `${n}×${e.hold}s`;
+      return `<button class="item" onclick="startMode('${k}',${i})"><span class="dot" style="background:${AREA_COLOR[e.area]}"></span>${e.name}${e.side?` <span style="color:var(--muted);font-size:12px">(${e.side})</span>`:""}<span class="item-meta">${meta}</span></button>`;
+    }).join("");
+    return `<div class="mode"><div class="mode-top"><div><div class="mode-title">${m.title}</div><div class="mode-meta">${m.time} · ${m.list.length} moves · last: ${lastDone(k)}</div></div><button class="mode-start" onclick="startMode('${k}',0)">Start</button></div><div class="mode-desc">${m.desc}</div><details class="moves"><summary>Moves (tap one to start there)</summary>${items}</details></div>`;
+  }).join("");
+}
+
+// ---------- AUDIO ----------
+let ctx=null;
+function unlockAudio(){ try{ if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)(); if(ctx.state==="suspended") ctx.resume(); }catch(e){} }
+function tone(f,d,vol){ try{ if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain(); o.type="sine"; o.frequency.value=f; o.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(vol||.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+d); o.start(); o.stop(ctx.currentTime+d);}catch(e){} }
+const sTick=()=>tone(440,.09,.22);
+const sGo=()=>{ tone(660,.12,.28); setTimeout(()=>tone(880,.2,.28),140); };
+const sRest=()=>tone(520,.25,.25);
+const sFinish=()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.35,.25),i*130));
+
+// ---------- WAKE LOCK ----------
+let wake=null;
+async function lockScreen(){ try{ if("wakeLock" in navigator) wake=await navigator.wakeLock.request("screen"); }catch(e){} }
+function unlockScreen(){ try{ if(wake){ wake.release(); wake=null; } }catch(e){} }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && S.active) lockScreen(); });
+
+// ---------- ENGINE ----------
+const C=276.5;
+const S={mode:null, list:[], ex:0, set:0, phase:"ready", rem:0, total:0, paused:false, active:false, start:0, iv:null};
+const cur=()=>S.list[S.ex];
+const nSets=e=>e.labels?e.labels.length:e.sets;
+const fmt=s=>s>=60?`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`:String(s);
+function setName(e,i){ const n=nSets(e); if(e.labels) return `${e.labels[i]} · ${i+1} of ${n}`; return n>1?`Set ${i+1} of ${n}`:""; }
+
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active", s.id===id)); }
+
+function startMode(key, idx){
+  unlockAudio(); lockScreen();
+  S.mode=key; S.list=MODES[key].list; S.ex=idx||0; S.paused=false; S.active=true; S.start=Date.now();
+  document.getElementById("strip").innerHTML = S.list.map((_,i)=>`<div class="seg" id="seg${i}"></div>`).join("");
+  show("workout"); enterReady();
+  clearInterval(S.iv); S.iv=setInterval(tick,1000);
+}
+
+function enterReady(){
+  S.set=0; S.phase="ready"; S.rem=S.total=READY_SEC;
+  renderStatic(); renderDynamic(); sTick();
+}
+function beginWork(){
+  const e=cur(); S.phase="work";
+  if(e.type==="hold"){ S.rem=S.total=e.hold; } else { S.rem=S.total=0; }
+  sGo(); renderDynamic();
+}
+function setComplete(){
+  const e=cur();
+  if(S.set < nSets(e)-1){
+    S.set++;
+    if(e.rest>0){ S.phase="rest"; S.rem=S.total=e.rest; sRest(); renderDynamic(); }
+    else beginWork();
+  } else advance(1);
+}
+function advance(d){
+  const nx=S.ex+d;
+  if(nx<0) return;
+  if(nx>=S.list.length){ finish(); return; }
+  S.ex=nx; enterReady();
+}
+function primary(){
+  unlockAudio();
+  const e=cur();
+  if(S.phase==="ready"||S.phase==="rest") beginWork();
+  else setComplete();
+}
+function tick(){
+  if(!S.active||S.paused) return;
+  const e=cur();
+  if(S.phase==="work" && e.type==="reps") return;
+  S.rem--;
+  if(S.rem>0 && S.rem<=3) sTick();
+  if(S.rem<=0){
+    if(S.phase==="ready"||S.phase==="rest") beginWork();
+    else setComplete();
+    return;
+  }
+  renderDynamic();
+}
+
+// ---------- RENDER ----------
+function renderStatic(){
+  const e=cur(), col=AREA_COLOR[e.area];
+  document.getElementById("wCount").textContent=`${MODES[S.mode].title} · ${S.ex+1} of ${S.list.length}`;
+  document.getElementById("wDot").style.background=col;
+  document.getElementById("wArea").textContent=e.area;
+  const side=document.getElementById("wSide");
+  side.style.display=e.side?"inline-block":"none"; side.textContent=e.side?`${e.side} side`:"";
+  document.getElementById("wName").textContent=e.name;
+  document.getElementById("wEquip").textContent=e.equip;
+  document.getElementById("wCue").textContent=e.cue;
+  document.getElementById("wSteps").innerHTML=e.steps.map(s=>`<li>${s}</li>`).join("");
+  document.getElementById("wTip").textContent=e.tip;
+  document.getElementById("wDemo").href="https://www.youtube.com/results?search_query="+encodeURIComponent(e.q);
+  document.getElementById("ringFg").style.stroke=col;
+  S.list.forEach((_,i)=>{ document.getElementById("seg"+i).className="seg"+(i<S.ex?" done":i===S.ex?" cur":""); });
+  document.querySelector(".w-body").scrollTop=0;
+}
+function renderDynamic(){
+  const e=cur(), n=nSets(e);
+  const ph=document.getElementById("wPhase"), sub=document.getElementById("wSub"), num=document.getElementById("ringNum"),
+        ring=document.getElementById("ringFg"), btn=document.getElementById("wPrimary");
+  const last = S.set===n-1;
+  if(S.phase==="ready"){
+    ph.textContent="Get ready";
+    sub.textContent = e.type==="reps"
+      ? `${e.labels?e.labels.join("-")+" · ":(n>1?n+" sets × ":"")}${e.reps} ${e.repNote}`
+      : `${e.labels?e.labels.join(" / "):(n>1?n+" × ":"")}${e.hold} sec hold${n>1&&!e.labels?"s":""}`;
+    num.textContent=S.rem; ring.style.strokeDashoffset=C*(1-S.rem/S.total);
+    btn.textContent="Start now";
+  } else if(S.phase==="rest"){
+    ph.textContent="Rest";
+    sub.textContent="Next: "+setName(e,S.set);
+    num.textContent=fmt(S.rem); ring.style.strokeDashoffset=C*(1-S.rem/S.total);
+    btn.textContent="Skip rest";
+  } else if(e.type==="reps"){
+    ph.textContent=setName(e,S.set)||"Go";
+    sub.textContent=`${e.repNote}. Tap when done.`;
+    num.textContent=e.reps; ring.style.strokeDashoffset=0;
+    btn.textContent = last ? (S.ex===S.list.length-1?"Finish ✓":"Done → next move") : "Set done ✓";
+  } else {
+    ph.textContent=setName(e,S.set)||"Hold";
+    if(e.breath){ const el=e.hold-S.rem; sub.textContent=["Inhale…","Hold…","Exhale…","Hold…"][Math.floor(el/4)%4]+"  ("+(4-el%4)+")"; }
+    else sub.textContent="Hold steady and breathe.";
+    num.textContent=fmt(S.rem); ring.style.strokeDashoffset=C*(1-S.rem/S.total);
+    btn.textContent = last ? (S.ex===S.list.length-1?"Finish ✓":"End early → next move") : "End hold early";
+  }
+}
+
+// ---------- PAUSE / FINISH ----------
+function pauseW(){
+  S.paused=true; const e=cur();
+  const pa=document.getElementById("pArea"); pa.textContent=e.area+(e.side?` · ${e.side} side`:""); pa.style.color=AREA_COLOR[e.area];
+  document.getElementById("pName").textContent=e.name;
+  document.getElementById("pWhere").textContent = S.phase==="ready" ? "About to start" :
+    (setName(e,S.set)||"In progress") + (S.phase==="rest"?" · resting":"") + (S.total?` · ${fmt(S.rem)} left`:"");
+  document.getElementById("pCue").textContent=e.cue;
+  document.getElementById("pSteps").innerHTML=e.steps.map(s=>`<li>${s}</li>`).join("");
+  document.getElementById("pTip").textContent=e.tip;
+  show("paused");
+}
+function resumeW(){ unlockAudio(); S.paused=false; show("workout"); }
+function stopAll(){ clearInterval(S.iv); S.iv=null; S.active=false; S.paused=false; unlockScreen(); }
+function quitW(){ stopAll(); renderHome(); show("home"); }
+function finish(){
+  stopAll(); sFinish(); addLog(S.mode);
+  document.getElementById("dTitle").textContent=MODES[S.mode].title+" done";
+  document.getElementById("dMin").textContent=Math.max(1,Math.round((Date.now()-S.start)/60000));
+  document.getElementById("dWeek").textContent=last7().length;
+  show("done");
+}
+function goHome(){ renderHome(); show("home"); }
+
+renderHome();
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>
