@@ -45,6 +45,31 @@ details.moves[open] summary::after{content:' ▴'}
 .note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:14px;padding:0 4px}
 .note b{color:var(--ink)}
 
+/* MODE LIST */
+.l-head{display:flex;align-items:center;gap:10px;padding:14px 16px 6px;flex-shrink:0}
+.back{background:var(--surface2);border:none;color:var(--ink);border-radius:10px;padding:8px 12px;font-size:15px}
+.l-scroll{flex:1;overflow-y:auto;padding:4px 16px 16px;-webkit-overflow-scrolling:touch}
+.l-title{font-family:'DM Serif Display',Georgia,serif;font-size:30px;letter-spacing:-.5px;line-height:1.1}
+.l-prog{font-size:13px;color:var(--muted);margin-top:4px}
+.l-prog b{color:var(--accent)}
+.l-desc{font-size:13px;color:var(--muted);line-height:1.5;margin:8px 0 6px}
+.row-ex{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--divider);border-radius:14px;margin-top:8px;padding:4px 10px 4px 4px}
+.row-ex.is-done{opacity:.55}
+.chk{width:44px;height:44px;flex-shrink:0;background:none;border:none;display:flex;align-items:center;justify-content:center}
+.chk span{width:24px;height:24px;border-radius:50%;border:2px solid #555;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
+.is-done .chk span{background:var(--accent);border-color:var(--accent)}
+.row-main{flex:1;background:none;border:none;color:var(--ink);text-align:left;padding:10px 0;display:flex;align-items:center;gap:10px;min-width:0}
+.row-main .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.row-txt{flex:1;min-width:0}
+.row-name{font-size:15px;font-weight:500;line-height:1.3}
+.is-done .row-name{text-decoration:line-through}
+.row-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.chev{color:var(--muted);font-size:18px}
+.l-foot{flex-shrink:0;padding:10px 16px 16px;border-top:1px solid var(--divider);display:flex;flex-direction:column;gap:8px}
+.mode-card{width:100%;text-align:left;color:var(--ink)}
+.mode-prog{font-size:12px;color:var(--accent);font-weight:600;margin-top:4px}
+.mode-go{color:var(--muted);font-size:22px}
+
 /* WORKOUT */
 .w-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 18px 10px;flex-shrink:0}
 .w-count{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
@@ -127,6 +152,17 @@ ol.steps li{margin-bottom:6px}
   </div>
 </div>
 
+<div class="screen" id="list">
+  <div class="l-head"><button class="back" onclick="goHome()">← Home</button></div>
+  <div class="l-scroll">
+    <div class="l-title" id="lTitle"></div>
+    <div class="l-prog" id="lProg"></div>
+    <div class="l-desc" id="lDesc"></div>
+    <div id="lRows"></div>
+  </div>
+  <div class="l-foot" id="lFoot"></div>
+</div>
+
 <div class="screen" id="workout">
   <div class="w-head">
     <div>
@@ -158,7 +194,7 @@ ol.steps li{margin-bottom:6px}
     </details>
   </div>
   <div class="w-foot">
-    <div class="row">
+    <div class="row" id="navRow">
       <button class="ghost" onclick="advance(-1)">← Back</button>
       <button class="ghost" onclick="advance(1)">Skip →</button>
     </div>
@@ -190,9 +226,9 @@ ol.steps li{margin-bottom:6px}
   <div class="d-sub">Consistency beats intensity. This counts.</div>
   <div class="d-stats">
     <div><div class="d-num" id="dMin">0</div><div class="d-lab">Minutes</div></div>
-    <div><div class="d-num" id="dWeek">0</div><div class="d-lab">Sessions, 7 days</div></div>
+    <div><div class="d-num" id="dWeek">0</div><div class="d-lab">Active days, last 7</div></div>
   </div>
-  <button class="primary" style="max-width:300px" onclick="goHome()">Back to Home</button>
+  <button class="primary" style="max-width:300px" onclick="leaveRun()">Done</button>
 </div>
 
 <script>
@@ -382,11 +418,11 @@ const EX = {
     steps:["Sit back, drop your shoulders.","Full inhale through the nose, then a short top-up sip.","Long, slow exhale through the mouth.","Repeat with the pacer for one minute."],
     tip:"One or two sighs calm you within seconds. A full minute is enough to notice the shift.", q:"physiological sigh"}
 };
-function v(base, over){ return Object.assign({}, EX[base], over||{}); }
+function v(base, over){ return Object.assign({key:base}, EX[base], over||{}); }
 
 const WARMUP = ["armSwings","shoulderCARs","trunkTwist","legSwings","marches"];
 const MODES = {
-  work: {title:"At Work", time:"~8 min", desc:"Seated or standing, no equipment. Run the whole set, or tap any move to do just that one between cases.",
+  work: {title:"At Work", time:"~8 min", desc:"Seated or standing, no equipment. Tap any move to do just that one between cases, or run the whole set.",
     list:[v("chinTuck"), v("seatedYTW"), v("deskFacePull"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet"), v("quickReset")]},
   quick:{title:"Home Quick", time:"~11 min", desc:"The minimum day. A short warm-up, the three highest-value moves, and a back reset.",
     list:[...WARMUP.map(k=>v(k)), v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
@@ -401,34 +437,65 @@ const MODES = {
 };
 
 // ---------- STORAGE ----------
-function getLog(){ try{ return JSON.parse(localStorage.getItem("rehabLog")||"[]"); }catch(e){ return []; } }
-function addLog(mode){ try{ const l=getLog(); l.push({t:Date.now(), m:mode}); localStorage.setItem("rehabLog", JSON.stringify(l.slice(-200))); }catch(e){} }
-function last7(){ const c=Date.now()-7*864e5; return getLog().filter(x=>x.t>=c); }
-function lastDone(mode){
-  const l=getLog().filter(x=>x.m===mode); if(!l.length) return "not yet";
+const dayKey=(d=new Date())=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+function load(k,def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }
+function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function getLog(){ return load("rehabLog",[]); }
+function logActivity(mode){
+  const l=getLog(), today=dayKey();
+  if(l.some(x=>x.m===mode && dayKey(new Date(x.t))===today)) return;
+  l.push({t:Date.now(), m:mode}); save("rehabLog", l.slice(-400));
+}
+function doneToday(){ const d=load("rehabDone",{}); return d.day===dayKey() ? d.m||{} : {}; }
+function isDone(mode,key){ return (doneToday()[mode]||[]).includes(key); }
+function setDone(mode,key,on){
+  const m=doneToday(), list=new Set(m[mode]||[]);
+  on?list.add(key):list.delete(key); m[mode]=[...list];
+  save("rehabDone",{day:dayKey(), m});
+  if(on) logActivity(mode);
+}
+function countDone(mode){ return MODES[mode].list.filter(e=>isDone(mode,e.key)).length; }
+function daysActive(filter){ const c=Date.now()-7*864e5; return new Set(getLog().filter(x=>x.t>=c && filter(x.m)).map(x=>dayKey(new Date(x.t)))).size; }
+function lastDone(filter){
+  const l=getLog().filter(x=>filter(x.m)); if(!l.length) return "not yet";
   const d=new Date(l[l.length-1].t), now=new Date();
   const days=Math.round((new Date(now.toDateString())-new Date(d.toDateString()))/864e5);
   if(days===0) return "today"; if(days===1) return "yesterday";
   return d.toLocaleDateString(undefined,{weekday:"short"}) + (days>6 ? " " + d.toLocaleDateString(undefined,{month:"short",day:"numeric"}) : "");
 }
+const isBreath=m=>MODES[m]&&MODES[m].group==="breathe";
 
 // ---------- HOME ----------
+function exMeta(e){ const n=nSets(e); return e.type==="reps" ? `${e.labels?e.labels.join("-")+" · ":n>1?n+" × ":""}${e.reps} reps` : e.pattern ? `${Math.round(e.hold/60)||1} min guided` : e.labels ? `${e.labels.join(" / ")} · ${e.hold}s` : `${n>1?n+" × ":""}${e.hold}s hold`; }
 function renderHome(){
-  const wk=last7(), home=wk.filter(x=>x.m==="quick"||x.m==="full").length, work=wk.filter(x=>x.m==="work").length, warm=wk.filter(x=>x.m==="warm").length,
-    breath=wk.filter(x=>MODES[x.m]&&MODES[x.m].group==="breathe").length;
-  document.getElementById("weekLine").innerHTML = `Last 7 days: <b>${home}</b> home · <b>${work}</b> work · <b>${warm}</b> warm-up · <b>${breath}</b> breathe`;
-  const bLast=(()=>{ const l=getLog().filter(x=>MODES[x.m]&&MODES[x.m].group==="breathe"); return l.length?lastDone(l[l.length-1].m):"not yet"; })();
-  const breatheCard = `<div class="mode"><div class="mode-top"><div><div class="mode-title">Breathe</div><div class="mode-meta">Guided · last: ${bLast}</div></div></div><div class="mode-desc">Follow the circle. Cyclic sighing is the best-tested 5-minute daily practice; the 1-minute reset is for between cases.</div><div class="b-row">${
-    ["sigh5","slow5","reset1"].map(k=>`<button class="b-btn" onclick="startMode('${k}',0)"><b>${MODES[k].title}</b><span>${MODES[k].time}</span></button>`).join("")}</div></div>`;
+  const home=daysActive(m=>m==="quick"||m==="full"), work=daysActive(m=>m==="work"), warm=daysActive(m=>m==="warm"), br=daysActive(isBreath);
+  document.getElementById("weekLine").innerHTML = `Days active, last 7: <b>${home}</b> home · <b>${work}</b> work · <b>${warm}</b> warm-up · <b>${br}</b> breathe`;
+  const breatheCard = `<div class="mode"><div class="mode-top"><div><div class="mode-title">Breathe</div><div class="mode-meta">Guided · last: ${lastDone(isBreath)}</div></div></div><div class="mode-desc">Follow the circle. Cyclic sighing is the best-tested 5-minute daily practice; the 1-minute reset is for between cases.</div><div class="b-row">${
+    ["sigh5","slow5","reset1"].map(k=>`<button class="b-btn" onclick="runSingle('${k}',0)"><b>${MODES[k].title}${countDone(k)?" ✓":""}</b><span>${MODES[k].time}</span></button>`).join("")}</div></div>`;
   document.getElementById("modes").innerHTML = Object.entries(MODES).filter(([k,m])=>!m.group).map(([k,m])=>{
-    const items = m.list.map((e,i)=>{
-      const n = nSets(e);
-      const meta = e.type==="reps" ? `${n}×${e.reps}` : e.pattern ? `${Math.round(e.hold/60)||1} min` : `${n}×${e.hold}s`;
-      return `<button class="item" onclick="startMode('${k}',${i})"><span class="dot" style="background:${AREA_COLOR[e.area]}"></span>${e.name}${e.side?` <span style="color:var(--muted);font-size:12px">(${e.side})</span>`:""}<span class="item-meta">${meta}</span></button>`;
-    }).join("");
-    return `<div class="mode"><div class="mode-top"><div><div class="mode-title">${m.title}</div><div class="mode-meta">${m.time} · ${m.list.length} moves · last: ${lastDone(k)}</div></div><button class="mode-start" onclick="startMode('${k}',0)">Start</button></div><div class="mode-desc">${m.desc}</div><details class="moves"><summary>Moves (tap one to start there)</summary>${items}</details></div>`;
+    const d=countDone(k), n=m.list.length;
+    return `<button class="mode mode-card" onclick="openMode('${k}')"><div class="mode-top"><div><div class="mode-title">${m.title}</div><div class="mode-meta">${m.time} · ${n} moves · last: ${lastDone(x=>x===k)}</div>${d?`<div class="mode-prog">${d===n?"All done today ✓":`${d} of ${n} done today`}</div>`:""}</div><span class="mode-go">›</span></div></button>`;
   }).join("") + breatheCard;
 }
+
+// ---------- MODE LIST ----------
+let LIST=null;
+function openMode(k){ LIST=k; renderList(); show("list"); document.querySelector(".l-scroll").scrollTop=0; }
+function renderList(){
+  const m=MODES[LIST], n=m.list.length, d=countDone(LIST);
+  document.getElementById("lTitle").textContent=m.title;
+  document.getElementById("lProg").innerHTML = d ? `<b>${d} of ${n}</b> done today · ${m.time} total` : `${m.time} total · ${n} moves`;
+  document.getElementById("lDesc").textContent=m.desc;
+  document.getElementById("lRows").innerHTML = m.list.map((e,i)=>{
+    const done=isDone(LIST,e.key);
+    return `<div class="row-ex${done?" is-done":""}"><button class="chk" aria-label="Mark done" onclick="toggleDone(${i})"><span>${done?"✓":""}</span></button><button class="row-main" onclick="runSingle('${LIST}',${i})"><span class="dot" style="background:${AREA_COLOR[e.area]}"></span><span class="row-txt"><div class="row-name">${e.name}${e.side?` <span style="color:var(--muted);font-size:12px">(${e.side})</span>`:""}</div><div class="row-meta">${exMeta(e)}</div></span><span class="chev">›</span></button></div>`;
+  }).join("");
+  const left=n-d;
+  document.getElementById("lFoot").innerHTML = (d>0 && left>0)
+    ? `<button class="primary" onclick="runAll(true)">Run the ${left} remaining</button><button class="ghost" style="flex:none" onclick="runAll(false)">Run all ${n} from the top</button>`
+    : `<button class="primary" onclick="runAll(false)">${d===n?"Run all again":"Run all "+n}</button>`;
+}
+function toggleDone(i){ const e=MODES[LIST].list[i]; setDone(LIST,e.key,!isDone(LIST,e.key)); renderList(); }
 
 // ---------- AUDIO ----------
 let ctx=null;
@@ -456,23 +523,37 @@ function setName(e,i){ const n=nSets(e); if(e.labels) return `${e.labels[i]} · 
 
 function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active", s.id===id)); }
 
-function startMode(key, idx){
+function begin(mode, list, single){
   unlockAudio(); lockScreen();
-  S.mode=key; S.list=MODES[key].list; S.ex=idx||0; S.paused=false; S.active=true; S.start=Date.now();
-  document.getElementById("strip").innerHTML = S.list.map((_,i)=>`<div class="seg" id="seg${i}"></div>`).join("");
-  show("workout"); enterReady();
+  Object.assign(S,{mode, list, single, ex:0, paused:false, active:true, start:Date.now()});
+  document.getElementById("strip").innerHTML = list.length>1 ? list.map((_,i)=>`<div class="seg" id="seg${i}"></div>`).join("") : "";
+  document.getElementById("navRow").style.display = single ? "none" : "flex";
+  show("workout"); enterExercise();
   clearInterval(S.iv); S.iv=setInterval(tick,1000);
 }
-
-function enterReady(){
-  S.set=0; S.phase="ready"; S.rem=S.total=READY_SEC;
-  renderStatic(); renderDynamic(); sTick();
+function runSingle(mode,i){ begin(mode,[MODES[mode].list[i]],true); }
+function runAll(remainingOnly){
+  const l=MODES[LIST].list.filter(e=>!remainingOnly||!isDone(LIST,e.key));
+  if(l.length) begin(LIST,l,false);
 }
-function beginWork(){
-  const e=cur(); S.phase="work";
+
+// Reps go straight in. Timed moves get a get-ready countdown:
+// automatic when running the whole set, tap-to-start when doing one on its own.
+function enterExercise(){
+  const e=cur(); S.set=0;
+  renderStatic();
+  if(e.type==="reps"){ beginWork(true); return; }
+  S.phase="ready";
+  if(S.single){ S.wait=true; S.rem=S.total=READY_SEC; }
+  else { S.wait=false; S.rem=S.total=READY_SEC; sTick(); }
+  renderDynamic();
+}
+function beginWork(quiet){
+  const e=cur(); S.phase="work"; S.wait=false;
   if(e.type==="hold"){ S.rem=S.total=e.hold; } else { S.rem=S.total=0; }
   B.acc=0; B.idx=-1;
-  sGo(); renderDynamic();
+  if(!quiet) sGo();
+  renderDynamic();
 }
 function setComplete(){
   const e=cur();
@@ -480,22 +561,22 @@ function setComplete(){
     S.set++;
     if(e.rest>0){ S.phase="rest"; S.rem=S.total=e.rest; sRest(); renderDynamic(); }
     else beginWork();
-  } else advance(1);
+  } else { setDone(S.mode, e.key, true); advance(1); }
 }
 function advance(d){
   const nx=S.ex+d;
   if(nx<0) return;
   if(nx>=S.list.length){ finish(); return; }
-  S.ex=nx; enterReady();
+  S.ex=nx; enterExercise();
 }
 function primary(){
   unlockAudio();
-  const e=cur();
+  if(S.phase==="ready" && S.wait){ S.wait=false; S.rem=S.total=5; sTick(); renderDynamic(); return; }
   if(S.phase==="ready"||S.phase==="rest") beginWork();
   else setComplete();
 }
 function tick(){
-  if(!S.active||S.paused) return;
+  if(!S.active||S.paused||S.wait) return;
   const e=cur();
   if(S.phase==="work" && e.type==="reps") return;
   S.rem--;
@@ -511,7 +592,7 @@ function tick(){
 // ---------- RENDER ----------
 function renderStatic(){
   const e=cur(), col=AREA_COLOR[e.area];
-  document.getElementById("wCount").textContent=`${MODES[S.mode].title} · ${S.ex+1} of ${S.list.length}`;
+  document.getElementById("wCount").textContent= S.single ? MODES[S.mode].title : `${MODES[S.mode].title} · ${S.ex+1} of ${S.list.length}`;
   document.getElementById("wDot").style.background=col;
   document.getElementById("wArea").textContent=e.area;
   const side=document.getElementById("wSide");
@@ -525,7 +606,7 @@ function renderStatic(){
   document.getElementById("ringFg").style.stroke=col;
   document.getElementById("pacer").style.background=col+"66";
   document.querySelector(".panel").classList.toggle("breathing", !!e.pattern);
-  S.list.forEach((_,i)=>{ document.getElementById("seg"+i).className="seg"+(i<S.ex?" done":i===S.ex?" cur":""); });
+  S.list.length>1 && S.list.forEach((_,i)=>{ document.getElementById("seg"+i).className="seg"+(i<S.ex?" done":i===S.ex?" cur":""); });
   document.querySelector(".w-body").scrollTop=0;
 }
 function renderDynamic(){
@@ -538,8 +619,8 @@ function renderDynamic(){
     sub.textContent = e.pattern ? `${Math.round(e.hold/60)||1} min · guided. Get comfortable.` : e.type==="reps"
       ? `${e.labels?e.labels.join("-")+" · ":(n>1?n+" sets × ":"")}${e.reps} ${e.repNote}`
       : `${e.labels?e.labels.join(" / ")+" · "+e.hold+" sec each":(n>1?n+" × ":"")+e.hold+" sec hold"+(n>1?"s":"")}`;
-    num.textContent=S.rem; ring.style.strokeDashoffset=C*(1-S.rem/S.total);
-    btn.textContent="Start now";
+    if(S.wait){ num.textContent="▶"; ring.style.strokeDashoffset=C; btn.textContent="Start timer"; ph.textContent="Ready when you are"; }
+    else { num.textContent=S.rem; ring.style.strokeDashoffset=C*(1-S.rem/S.total); btn.textContent="Skip countdown"; }
   } else if(S.phase==="rest"){
     ph.textContent="Rest";
     sub.textContent="Next: "+setName(e,S.set);
@@ -549,13 +630,13 @@ function renderDynamic(){
     ph.textContent=setName(e,S.set)||"Go";
     sub.textContent=`${e.repNote}. Tap when done.`;
     num.textContent=e.reps; ring.style.strokeDashoffset=0;
-    btn.textContent = last ? (S.ex===S.list.length-1?"Finish ✓":"Done → next move") : "Set done ✓";
+    btn.textContent = last ? (S.ex===S.list.length-1?"Done ✓":"Done → next move") : "Set done ✓";
   } else {
     ph.textContent=setName(e,S.set)||"Hold";
     if(e.pattern){ ph.textContent="Breathe"; }
     else sub.textContent="Hold steady and breathe.";
     num.textContent=fmt(S.rem); ring.style.strokeDashoffset=C*(1-S.rem/S.total);
-    btn.textContent = e.pattern ? (S.ex===S.list.length-1?"End session ✓":"End early → next move") : last ? (S.ex===S.list.length-1?"Finish ✓":"End early → next move") : "End hold early";
+    btn.textContent = e.pattern ? (S.ex===S.list.length-1?"End & mark done ✓":"End early → next move") : last ? (S.ex===S.list.length-1?"End early ✓":"End early → next move") : "End hold early";
   }
 }
 
@@ -594,16 +675,18 @@ function pauseW(){
   show("paused");
 }
 function resumeW(){ unlockAudio(); S.paused=false; show("workout"); }
-function stopAll(){ clearInterval(S.iv); S.iv=null; S.active=false; S.paused=false; unlockScreen(); }
-function quitW(){ stopAll(); renderHome(); show("home"); }
+function stopAll(){ clearInterval(S.iv); S.iv=null; S.active=false; S.paused=false; S.wait=false; unlockScreen(); }
+function leaveRun(){ if(isBreath(S.mode)||!MODES[S.mode]) goHome(); else openMode(S.mode); }
+function quitW(){ stopAll(); leaveRun(); }
 function finish(){
-  stopAll(); sFinish(); addLog(S.mode);
+  stopAll(); sFinish();
+  if(S.single){ leaveRun(); return; }
   document.getElementById("dTitle").textContent=MODES[S.mode].title+" done";
   document.getElementById("dMin").textContent=Math.max(1,Math.round((Date.now()-S.start)/60000));
-  document.getElementById("dWeek").textContent=last7().length;
+  document.getElementById("dWeek").textContent=daysActive(()=>true);
   show("done");
 }
-function goHome(){ renderHome(); show("home"); }
+function goHome(){ LIST=null; renderHome(); show("home"); }
 
 renderHome();
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
