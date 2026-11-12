@@ -67,6 +67,11 @@ details.moves[open] summary::after{content:' ▴'}
 .chev{color:var(--muted);font-size:18px}
 .l-foot{flex-shrink:0;padding:10px 16px 16px;border-top:1px solid var(--divider);display:flex;flex-direction:column;gap:8px}
 .mode-card{width:100%;text-align:left;color:var(--ink)}
+.mode-main{border:1.5px solid var(--accent);background:rgba(212,118,59,.10)}
+.mode-main .mode-title{font-size:28px}
+.mode-main .mode-desc{color:var(--ink);opacity:.8}
+.opt-head{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:26px 4px 0}
+.opt-sub{font-size:12.5px;color:var(--muted);margin:4px 4px 0;line-height:1.5}
 .mode-prog{font-size:12px;color:var(--accent);font-weight:600;margin-top:4px}
 .mode-go{color:var(--muted);font-size:22px}
 
@@ -148,7 +153,7 @@ ol.steps li{margin-bottom:6px}
     <div class="week" id="weekLine"></div>
     <div id="modes"></div>
     <div class="note"><b>Pinch rule:</b> muscle burn = good · stretch = fine · pinch or sharp pain = stop just short of it. The pinch-free range should grow over a few weeks.</div>
-    <div class="note"><b>Weekly plan:</b> Home Full or Quick about 3×/week (trainer days can count). At Work moves any day, even just one. Stair climber on cardio days.</div>
+    <div class="note"><b>The plan:</b> Daily 5 most days. Your trainer covers strength twice a week (external rotation, face pulls, slow-lowering curls, step-downs). Retest the elbows-in wall slide every couple of weeks.</div>
   </div>
 </div>
 
@@ -449,6 +454,8 @@ function v(base, over){ return Object.assign({key:base}, EX[base], over||{}); }
 
 const WARMUP = ["armSwings","shoulderCARs","trunkTwist","legSwings","marches"];
 const MODES = {
+  daily: {title:"Daily 5", main:true, time:"~5 min", desc:"The one thing to do most days: loosen the upper back, stretch the lats, one round of Y-T-W.",
+    list:[v("thoracic"), v("benchLat"), v("proneYTW")]},
   work: {title:"At Work", time:"~8 min", desc:"Seated or standing, no equipment. Tap any move to do just that one between cases, or run the whole set.",
     list:[v("chinTuck"), v("seatedYTW"), v("deskFacePull"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet"), v("quickReset")]},
   quick:{title:"Home Quick", time:"~11 min", desc:"The minimum day. A short warm-up, the three highest-value moves, and a back reset.",
@@ -497,13 +504,13 @@ const isBreath=m=>MODES[m]&&MODES[m].group==="breathe";
 // ---------- HOME ----------
 function exMeta(e){ const n=nSets(e); if(e.meta) return e.meta; return e.type==="reps" ? `${e.labels?e.labels.join("-")+" · ":n>1?n+" × ":""}${e.reps} reps` : e.pattern ? `${Math.round(e.hold/60)||1} min guided` : e.labels ? `${e.labels.join(" / ")} · ${e.hold}s` : `${n>1?n+" × ":""}${e.hold}s hold`; }
 function renderHome(){
-  const home=daysActive(m=>m==="quick"||m==="full"), work=daysActive(m=>m==="work"), warm=daysActive(m=>m==="warm"), br=daysActive(isBreath);
-  document.getElementById("weekLine").innerHTML = `Days active, last 7: <b>${home}</b> home · <b>${work}</b> work · <b>${warm}</b> warm-up · <b>${br}</b> breathe`;
+  const dd=daysActive(m=>m==="daily"), other=daysActive(m=>m!=="daily");
+  document.getElementById("weekLine").innerHTML = `Daily 5: <b>${dd}</b> of the last 7 days${other?` · something optional on <b>${other}</b>`:""}`;
   const breatheCard = `<div class="mode"><div class="mode-top"><div><div class="mode-title">Breathe</div><div class="mode-meta">Guided · last: ${lastDone(isBreath)}</div></div></div><div class="mode-desc">Follow the circle. Cyclic sighing is the best-tested 5-minute daily practice; the 1-minute reset is for between cases.</div><div class="b-row">${
     ["sigh5","slow5","reset1"].map(k=>`<button class="b-btn" onclick="runSingle('${k}',0)"><b>${MODES[k].title}${countDone(k)?" ✓":""}</b><span>${MODES[k].time}</span></button>`).join("")}</div></div>`;
   document.getElementById("modes").innerHTML = Object.entries(MODES).filter(([k,m])=>!m.group).map(([k,m])=>{
     const d=countDone(k), n=m.list.length;
-    return `<button class="mode mode-card" onclick="openMode('${k}')"><div class="mode-top"><div><div class="mode-title">${m.title}</div><div class="mode-meta">${m.time} · ${n} moves · last: ${lastDone(x=>x===k)}</div>${d?`<div class="mode-prog">${d===n?"All done today ✓":`${d} of ${n} done today`}</div>`:""}</div><span class="mode-go">›</span></div></button>`;
+    return `<button class="mode mode-card${m.main?" mode-main":""}" onclick="openMode('${k}')"><div class="mode-top"><div><div class="mode-title">${m.title}</div><div class="mode-meta">${m.time} · ${n} moves · last: ${lastDone(x=>x===k)}</div>${d?`<div class="mode-prog">${d===n?"All done today ✓":`${d} of ${n} done today`}</div>`:""}</div><span class="mode-go">›</span></div>${m.main?`<div class="mode-desc">${m.desc}</div>`:""}</button>${m.main?`<div class="opt-head">Optional</div><div class="opt-sub">Extras for when you feel like it. Skipping these isn't falling behind.</div>`:""}`;
   }).join("") + breatheCard;
 }
 
