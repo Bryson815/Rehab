@@ -326,6 +326,33 @@ const EX = {
       "Breathe slowly and let your shoulders sink toward the floor. Slide your arms a little higher or lower to find the best stretch."],
     tip:"This stretches the pec minor, the main muscle pulling shoulders forward. Left shoulder: keep arms low enough that nothing pinches.", q:"foam roller lengthwise chest opener pec minor"},
 
+  benchLat: {name:"Bench Lat Stretch", area:"Shoulder", type:"hold", sets:2, hold:45, rest:10,
+    equip:"Bench, couch, or chair · optional stick or towel",
+    cue:"Kneel facing the bench, elbows on the edge and close together, palms together. Sit your hips back and let your chest sink toward the floor.",
+    steps:["Kneel in front of a bench, couch, or sturdy chair. Rest both elbows on the edge, shoulder-width or narrower.",
+      "Press your palms together (or hold a stick or towel between your hands) and bend your elbows so your hands drop behind your head.",
+      "Sit your hips back toward your heels and let your chest and head sink below the bench.",
+      "Feel it along the sides of your back and the backs of your arms. Breathe and sink a little more on each exhale."],
+    tip:"This targets the exact limit in your elbows-in wall slide. Keep your ribs from flaring; a light ab brace keeps the stretch in the lats. Left shoulder: stop short of any pinch.", q:"bench lat stretch elbows on bench"},
+
+  openBook: {name:"Open Books", area:"Posture", type:"reps", labels:["Open left arm","Open right arm"], meta:"8 per side", reps:"8", repNote:"reps · 2-sec pause open", rest:0,
+    equip:"Floor · pillow for your head",
+    cue:"Lie on your side, knees bent and stacked, arms straight out in front together. Sweep the top arm open toward the floor behind you, following it with your eyes.",
+    steps:["Lie on your side with a pillow under your head, hips and knees bent about 90° and stacked.",
+      "Arms straight out in front of you at shoulder height, palms together.",
+      "Keeping your knees together, sweep the top arm up and over, rotating your upper back until the arm opens toward the floor behind you.",
+      "Pause 2 seconds and breathe out, then return. Switch sides when the app says to."],
+    tip:"The rotation comes from your upper back, not your low back. Keep your knees glued together.", q:"open book thoracic rotation"},
+
+  rollerWallSlide: {name:"Foam Roller Wall Slides", area:"Shoulder", type:"reps", sets:2, reps:"10", repNote:"reps · lift off at the top", rest:20,
+    equip:"Foam roller + wall",
+    cue:"Forearms on a foam roller against the wall, elbows shoulder-width. Roll it up as high as you can, lift your hands slightly off at the top, then roll back down.",
+    steps:["Face the wall with a foam roller held horizontally under your forearms, elbows about shoulder-width, pinkie side of your forearms on the roller.",
+      "Lean in lightly and roll the roller up the wall as your arms rise, letting your shoulder blades rotate up and around your ribs.",
+      "At the top, lift your forearms an inch off the roller and hold 2 seconds.",
+      "Roll back down with control. Keep your ribs down; don't arch your low back to get higher."],
+    tip:"This is the strength side of overhead range: it trains the serratus and lower traps to hold the range the stretches give you. Left shoulder: work below any pinch.", q:"foam roller wall slide serratus"},
+
   sideER: {name:"Side-Lying External Rotation", area:"Shoulder", side:"Left", type:"reps", sets:2, reps:"15", repNote:"reps · slow both ways", rest:30,
     equip:"Floor · rolled towel · light weight optional",
     cue:"Lie on your RIGHT side. Left elbow bent 90° with a small towel roll between elbow and ribs. Rotate your forearm up toward the ceiling, lower slowly.",
@@ -426,9 +453,11 @@ const MODES = {
     list:[v("chinTuck"), v("seatedYTW"), v("deskFacePull"), v("isoER"), v("lowDoorway"), v("sitStand"), v("quadSet"), v("quickReset")]},
   quick:{title:"Home Quick", time:"~11 min", desc:"The minimum day. A short warm-up, the three highest-value moves, and a back reset.",
     list:[...WARMUP.map(k=>v(k)), v("eccCurl"), v("proneYTW"), v("stepDown"), v("thoracic")]},
-  full: {title:"Home Full", time:"~25 min", desc:"The complete session: warm-up, strength, mobility, and a breathing finish.",
-    list:[...WARMUP.map(k=>v(k)), v("thoracic"), v("rollerOpener"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("pushPlus"),
+  full: {title:"Home Full", time:"~30 min", desc:"The complete session: warm-up, strength, mobility, and a breathing finish.",
+    list:[...WARMUP.map(k=>v(k)), v("thoracic"), v("rollerOpener"), v("benchLat"), v("openBook"), v("eccCurl",{sets:3, rest:45}), v("sideER"), v("proneYTW",{labels:["Y","T","W","Y","T","W"]}), v("rollerWallSlide"), v("pushPlus"),
           v("stepDown",{sets:3, rest:30}), v("bridge"), v("lowDoorway"), v("crossSleeper"), v("cyclicSigh",{hold:120})]},
+  overhead: {title:"Overhead Mobility", time:"~8 min", desc:"Targets the elbows-in wall slide limit: upper-back extension and rotation, lat length, then strength at the top of the range. Retest the wall slide every couple of weeks.",
+    list:[v("thoracic"), v("benchLat"), v("openBook"), v("rollerWallSlide")]},
   warm: {title:"Warm-Up Only", time:"~4 min", desc:"Dynamic warm-up for before your trainer sessions or the gym. Also a good bare-minimum day.",
     list:WARMUP.map(k=>v(k))},
   sigh5:  {title:"Cyclic Sighing", group:"breathe", time:"5 min", list:[v("cyclicSigh")]},
@@ -466,7 +495,7 @@ function lastDone(filter){
 const isBreath=m=>MODES[m]&&MODES[m].group==="breathe";
 
 // ---------- HOME ----------
-function exMeta(e){ const n=nSets(e); return e.type==="reps" ? `${e.labels?e.labels.join("-")+" · ":n>1?n+" × ":""}${e.reps} reps` : e.pattern ? `${Math.round(e.hold/60)||1} min guided` : e.labels ? `${e.labels.join(" / ")} · ${e.hold}s` : `${n>1?n+" × ":""}${e.hold}s hold`; }
+function exMeta(e){ const n=nSets(e); if(e.meta) return e.meta; return e.type==="reps" ? `${e.labels?e.labels.join("-")+" · ":n>1?n+" × ":""}${e.reps} reps` : e.pattern ? `${Math.round(e.hold/60)||1} min guided` : e.labels ? `${e.labels.join(" / ")} · ${e.hold}s` : `${n>1?n+" × ":""}${e.hold}s hold`; }
 function renderHome(){
   const home=daysActive(m=>m==="quick"||m==="full"), work=daysActive(m=>m==="work"), warm=daysActive(m=>m==="warm"), br=daysActive(isBreath);
   document.getElementById("weekLine").innerHTML = `Days active, last 7: <b>${home}</b> home · <b>${work}</b> work · <b>${warm}</b> warm-up · <b>${br}</b> breathe`;
